@@ -1,0 +1,91 @@
+{% extends "unfold/layouts/base.html" %}
+{% load i18n unfold %}
+
+{% block content %}
+    <div class="container mx-auto px-4 py-8">
+        <h2 class="text-2xl font-bold mb-6 text-gray-800 dark:text-white">Business Analytics Overview</h2>
+
+        <!-- KPI Row -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {% component "unfold/components/card.html" %}
+                <div class="flex items-center gap-4">
+                    <div class="p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                        <span class="material-symbols-outlined text-blue-600 dark:text-blue-300">chat_bubble</span>
+                    </div>
+                    <div>
+                        {% component "unfold/components/text.html" %}
+                            Total Queries
+                        {% endcomponent %}
+                        {% component "unfold/components/title.html" %}
+                            {{ kpi_total_queries }}
+                        {% endcomponent %}
+                    </div>
+                </div>
+            {% endcomponent %}
+
+            {% component "unfold/components/card.html" %}
+                <div class="flex items-center gap-4">
+                    <div class="p-3 bg-purple-100 dark:bg-purple-900 rounded-lg">
+                        <span class="material-symbols-outlined text-purple-600 dark:text-purple-300">person_add</span>
+                    </div>
+                    <div>
+                        {% component "unfold/components/text.html" %}
+                            Total Leads
+                        {% endcomponent %}
+                        {% component "unfold/components/title.html" %}
+                            {{ kpi_total_leads }}
+                        {% endcomponent %}
+                    </div>
+                </div>
+            {% endcomponent %}
+
+            {% component "unfold/components/card.html" %}
+                <div class="flex items-center gap-4">
+                    <div class="p-3 bg-green-100 dark:bg-green-900 rounded-lg">
+                        <span class="material-symbols-outlined text-green-600 dark:text-green-300">event_available</span>
+                    </div>
+                    <div>
+                        {% component "unfold/components/text.html" %}
+                            Total Bookings
+                        {% endcomponent %}
+                        {% component "unfold/components/title.html" %}
+                            {{ kpi_total_bookings }}
+                        {% endcomponent %}
+                    </div>
+                </div>
+            {% endcomponent %}
+        </div>
+
+        <!-- Charts Row 1: Queries Trend -->
+        <div class="grid grid-cols-1 gap-6 mb-8">
+            {% component "unfold/components/card.html" %}
+                <h3 class="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">Customer Interaction Trend (Last 7 Days)</h3>
+                {% component "unfold/components/chart/line.html" with data=queries_chart %}
+                {% endcomponent %}
+            {% endcomponent %}
+        </div>
+
+        <!-- Charts Row 2: Popular Services & Areas -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {% component "unfold/components/card.html" %}
+                <h3 class="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">Most Requested Services</h3>
+                {% if services_chart.labels %}
+                    {% component "unfold/components/chart/bar.html" with data=services_chart %}
+                    {% endcomponent %}
+                {% else %}
+                    <p class="text-gray-500 italic py-10 text-center">No bookings data available yet.</p>
+                {% endif %}
+            {% endcomponent %}
+
+            {% component "unfold/components/card.html" %}
+                <h3 class="text-lg font-semibold mb-4 text-gray-700 dark:text-gray-200">Top Service Areas</h3>
+                {% if areas_chart.labels %}
+                    {% component "unfold/components/chart/bar.html" with data=areas_chart %}
+                    {% endcomponent %}
+                {% else %}
+                    <p class="text-gray-500 italic py-10 text-center">No leads data available yet.</p>
+                {% endif %}
+            {% endcomponent %}
+        </div>
+    </div>
+{% endblock %}
