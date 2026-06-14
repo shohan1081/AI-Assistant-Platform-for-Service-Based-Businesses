@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f7f6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .header {
+            background-color: #4f46e5;
+            color: #ffffff;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            padding: 30px;
+        }
+        .welcome-text {
+            font-size: 18px;
+            font-weight: bold;
+            color: #4f46e5;
+        }
+        .details-box {
+            background-color: #f9fafb;
+            border-left: 4px solid #4f46e5;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .details-box p {
+            margin: 5px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 25px;
+            background-color: #4f46e5;
+            color: #ffffff !important;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-top: 20px;
+        }
+        .steps {
+            margin-top: 30px;
+        }
+        .step-item {
+            margin-bottom: 15px;
+        }
+        .footer {
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #6b7280;
+            background-color: #f9fafb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>NexFlow AI</h1>
+        </div>
+        <div class="content">
+            <p class="welcome-text">Hi {{ username }},</p>
+            <p>Congratulations! Your business registration for <strong>{{ business_name }}</strong> has been <strong>APPROVED</strong>.</p>
+            
+            <p>You can now access your Sub-Admin Panel to configure your AI Assistant and manage your leads.</p>
+
+            <div class="details-box">
+                <p><strong>Login URL:</strong> <a href="{{ login_url }}">{{ login_url }}</a></p>
+                <p><strong>Username:</strong> {{ username }}</p>
+                <p><strong>Password:</strong> (The password you chose during registration)</p>
+            </div>
+
+            <a href="{{ login_url }}" class="button">Log In to Dashboard</a>
+
+            <div class="steps">
+                <h3>Next Steps to Get Started:</h3>
+                <div class="step-item">
+                    <strong>1. Complete Your Profile:</strong> Go to 'Businesses' and fill out your services, hours, and pricing.
+                </div>
+                <div class="step-item">
+                    <strong>2. Train Your AI:</strong> Add FAQs and special instructions to make your assistant smarter.
+                </div>
+                <div class="step-item">
+                    <strong>3. Go Live:</strong> Use your public assistant link to start capturing leads.
+                </div>
+            </div>
+
+            <p>Welcome aboard! We're excited to help your business flow better.</p>
+            <p>Best regards,<br>The NexFlow AI Team</p>
+        </div>
+        <div class="footer">
+            &copy; 2026 NexFlow AI Platform. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>
