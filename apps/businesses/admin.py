@@ -1,15 +1,18 @@
 from django.contrib import admin
 from django.core.mail import send_mail
 from django.conf import settings
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags, format_html
+from django.utils.safestring import mark_safe
+from django.contrib import messages
 import logging
 
 logger = logging.getLogger(__name__)
 
 from unfold.admin import ModelAdmin, TabularInline
 from .models import Business, OnboardingLink, FAQ, RegistrationRequest
+from .forms import BusinessAdminForm, DAYS_OF_WEEK
 from apps.accounts.models import User
-from django.utils.html import format_html
-from django.contrib import messages
 
 class FAQInline(TabularInline):
     model = FAQ
@@ -58,33 +61,35 @@ class RegistrationRequestAdmin(ModelAdmin):
                 user.user_permissions.add(*perms)
 
             subject = f"Welcome to NexFlow AI - {reg_request.business_name}"
-            email_body = f"""
-            Hi {reg_request.username},
-
-            Your business registration for '{reg_request.business_name}' has been APPROVED!
-
-            You can now log in to your Sub-Admin Panel to complete your setup.
-
-            Login URL: {request.build_absolute_uri('/admin/')}
-            Username: {reg_request.username}
-            Password: (The password you chose during registration)
-
-            Next Steps:
-            1. Log in to the admin panel.
-            2. Go to 'Businesses' and click on your business name.
-            3. Fill out all the required information (Services, Hours, FAQs, etc.).
-            4. Save your changes to train your AI Assistant.
-
-            Welcome aboard!
-            The NexFlow AI Team
-            """
+            login_url = request.build_absolute_uri('/admin/')
             
-            send_mail(subject, email_body, settings.DEFAULT_FROM_EMAIL, [reg_request.email], fail_silently=False)
-            return True, "Success"
+            context = {
+                'username': reg_request.username,
+                'business_name': reg_request.business_name,
+                'login_url': login_url,
+            }
+            
+            html_message = render_to_string('emails/approval_welcome.html', context)
+            plain_message = strip_tags(html_message)
+            
+            try:
+                send_mail(
+                    subject, 
+                    plain_message, 
+                    settings.DEFAULT_FROM_EMAIL, 
+                    [reg_request.email], 
+                    html_message=html_message,
+                    fail_silently=False
+                )
+                logger.info(f"Approval email sent successfully to {reg_request.email}")
+                return True, "Account created and welcome email sent."
+            except Exception as email_error:
+                logger.error(f"Email sending failed for {reg_request.email}: {str(email_error)}")
+                return True, f"Account created, but welcome email failed to send. Error: {str(email_error)}"
 
         except Exception as e:
-            logger.error(f"Approval Error: {str(e)}")
-            return False, str(e)
+            logger.exception(f"Approval Error for {reg_request.username}: {str(e)}")
+            return False, f"System error during approval: {str(e)}"
 
     def save_model(self, request, obj, form, change):
         if change and 'status' in form.changed_data and obj.status == RegistrationRequest.Status.APPROVED:
@@ -113,6 +118,7 @@ class RegistrationRequestAdmin(ModelAdmin):
 
 @admin.register(Business)
 class BusinessAdmin(ModelAdmin):
+    form = BusinessAdminForm
     list_display = ('name_display', 'owner', 'email', 'is_setup_complete', 'created_at')
     search_fields = ('name', 'email', 'owner__username')
     inlines = [FAQInline]
@@ -130,12 +136,55 @@ class BusinessAdmin(ModelAdmin):
         return "Not generated yet"
     public_assistant_link.short_description = "Public AI Assistant Link"
 
+    def setup_progress(self, obj):
+        if not obj.pk:
+            return "Save the business first to see progress."
+            
+        required_fields = {
+            'Name': obj.name,
+            'Website': obj.website_url,
+            'Contact Number': obj.contact_number,
+            'Email': obj.email,
+            'Address': obj.address,
+            'Service Areas': obj.service_areas,
+            'Services Offered': obj.services_offered,
+            'Business Hours': obj.business_hours,
+            'Pricing Info': obj.pricing_info,
+            'Appointment Rules': obj.appointment_rules,
+            'Lead Qual. Questions': obj.lead_qualification_questions,
+            'Special Instructions': obj.special_instructions,
+        }
+        
+        missing = [label for label, val in required_fields.items() if not val]
+        has_faqs = obj.faqs.exists()
+        
+        if not missing and has_faqs:
+            return mark_safe('<b style="color: green;">✅ Setup Complete! AI Assistant is ready.</b>')
+        
+        error_msg = '<ul style="color: #d9534f; margin: 0; padding-left: 20px;">'
+        for item in missing:
+            error_msg += f'<li>Missing: {item}</li>'
+        if not has_faqs:
+            error_msg += '<li>Missing: At least one FAQ</li>'
+        error_msg += '</ul>'
+        
+        return mark_safe(error_msg)
+    setup_progress.short_description = "Setup Status / Missing Info"
+
     fieldsets = (
+        ('Setup Status', {
+            'fields': ('setup_progress',),
+        }),
         ('Basic Information', {
-            'fields': ('owner', 'name', 'public_assistant_link', 'website_url', 'email', 'contact_number', 'address', 'is_setup_complete')
+            'fields': ('owner', 'name', 'public_assistant_link', 'website_url', 'email', 'contact_number', 'address', 'is_setup_complete', 'business_hours')
+        }),
+        ('Business Hours', {
+            'fields': [
+                (f'{day}_active', f'{day}_start', f'{day}_end') for day in DAYS_OF_WEEK
+            ]
         }),
         ('Service Details', {
-            'fields': ('services_offered', 'service_areas', 'business_hours', 'emergency_service_available')
+            'fields': ('services_offered', 'service_areas', 'emergency_service_available')
         }),
         ('AI & Assistant Logic', {
             'fields': ('pricing_info', 'appointment_rules', 'lead_qualification_questions', 'special_instructions')
@@ -143,9 +192,10 @@ class BusinessAdmin(ModelAdmin):
     )
 
     def get_readonly_fields(self, request, obj=None):
+        base_readonly = ['public_assistant_link', 'setup_progress']
         if request.user.is_superuser or request.user.role == User.Role.ADMIN:
-            return ['public_assistant_link']
-        return ['owner', 'is_setup_complete', 'public_assistant_link']
+            return base_readonly
+        return ['owner', 'is_setup_complete'] + base_readonly
 
     def get_queryset(self, request):
         qs = super().get_queryset(request)

@@ -70,7 +70,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -201,11 +201,19 @@ SPECTACULAR_SETTINGS = {
 # CORS Settings
 CORS_ALLOWED_ORIGINS = env('CORS_ALLOWED_ORIGINS')
 
+# Unfold Admin Settings
+import core.utils
+UNFOLD = {
+    "SITE_TITLE": core.utils.get_site_title,
+    "SITE_HEADER": core.utils.get_site_header,
+    "DASHBOARD_CALLBACK": "core.utils.dashboard_callback",
+}
+
 # OpenAI Settings
 OPENAI_API_KEY = env('OPENAI_API_KEY', default='')
 
 # Email Settings
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_BACKEND = env('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = env('EMAIL_HOST', default='localhost')
 EMAIL_PORT = env.int('EMAIL_PORT', default=587)
 EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
