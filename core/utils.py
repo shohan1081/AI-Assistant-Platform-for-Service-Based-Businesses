@@ -73,7 +73,7 @@ def dashboard_callback(request, context):
     context.update({
         "kpi_total_leads": Lead.objects.filter(business=business).count(),
         "kpi_total_bookings": Booking.objects.filter(business=business).count(),
-        "kpi_total_queries": ChatMessage.objects.filter(assistant__business=business, role='user').count(),
+        "kpi_total_conversations": ChatMessage.objects.filter(assistant__business=business).values('session_id').distinct().count(),
         "queries_chart": queries_chart,
         "services_chart": services_chart,
         "areas_chart": areas_chart,
