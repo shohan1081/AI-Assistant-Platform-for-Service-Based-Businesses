@@ -10,14 +10,14 @@
             {% component "unfold/components/card.html" %}
                 <div class="flex items-center gap-4">
                     <div class="p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
-                        <span class="material-symbols-outlined text-blue-600 dark:text-blue-300">chat_bubble</span>
+                        <span class="material-symbols-outlined text-blue-600 dark:text-blue-300">forum</span>
                     </div>
                     <div>
                         {% component "unfold/components/text.html" %}
-                            Total Queries
+                            Total Conversations
                         {% endcomponent %}
                         {% component "unfold/components/title.html" %}
-                            {{ kpi_total_queries }}
+                            {{ kpi_total_conversations }}
                         {% endcomponent %}
                     </div>
                 </div>
