@@ -1,60 +1,70 @@
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, post_delete
 from django.dispatch import receiver
 from django.utils.text import slugify
-from .models import Business
+from .models import Business, FAQ
 from apps.assistants.models import Assistant
 
-@receiver(post_save, sender=Business)
-def manage_assistant(sender, instance, created, **kwargs):
+def update_business_assistant_and_status(business):
+    """Helper function to update assistant KB and business setup status."""
     # Compile knowledge for the AI
-    kb = f"### BUSINESS PROFILE: {instance.name} ###\n"
-    kb += f"Website: {instance.website_url or 'N/A'}\n"
-    kb += f"Contact: {instance.contact_number}, Email: {instance.email}\n"
-    kb += f"Address: {instance.address}\n"
-    kb += f"Service Areas: {instance.service_areas}\n"
-    kb += f"Services Offered: {instance.services_offered}\n"
-    kb += f"Business Hours: {instance.business_hours}\n"
-    kb += f"Emergency Service: {'Available' if instance.emergency_service_available else 'Not Available'}\n"
+    kb = f"### BUSINESS PROFILE: {business.name} ###\n"
+    kb += f"Website: {business.website_url or 'N/A'}\n"
+    kb += f"Contact: {business.contact_number}, Email: {business.email}\n"
+    kb += f"Address: {business.address}\n"
+    kb += f"Service Areas: {business.service_areas}\n"
+    kb += f"Services Offered: {business.services_offered}\n"
+    kb += f"Business Hours: {business.business_hours}\n"
+    kb += f"Emergency Service: {'Available' if business.emergency_service_available else 'Not Available'}\n"
     kb += f"\n### PRICING & RULES ###\n"
-    kb += f"Pricing: {instance.pricing_info or 'Ask for quote'}\n"
-    kb += f"Appointment Rules: {instance.appointment_rules or 'N/A'}\n"
-    kb += f"Lead Qualification: {instance.lead_qualification_questions or 'N/A'}\n"
+    kb += f"Pricing: {business.pricing_info or 'Ask for quote'}\n"
+    kb += f"Appointment Rules: {business.appointment_rules or 'N/A'}\n"
+    kb += f"Lead Qualification: {business.lead_qualification_questions or 'N/A'}\n"
     kb += f"\n### FAQS ###\n"
-    for faq in instance.faqs.all():
+    for faq in business.faqs.all():
         kb += f"Q: {faq.question}\nA: {faq.answer}\n"
     kb += f"\n### SPECIAL INSTRUCTIONS ###\n"
-    kb += f"{instance.special_instructions or 'Respond professionally.'}"
+    kb += f"{business.special_instructions or 'Respond professionally.'}"
 
-    if created:
-        Assistant.objects.create(
-            business=instance,
-            slug=slugify(instance.name) if instance.name else slugify(instance.owner.username),
-            knowledge_base=kb
-        )
-    else:
-        # Update existing assistant whenever business info is updated
-        assistant, _ = Assistant.objects.get_or_create(business=instance)
-        assistant.knowledge_base = kb
-        # Also update slug if name was just fulfilled
-        if instance.name and not assistant.slug:
-            assistant.slug = slugify(instance.name)
-        assistant.save()
+    # Update existing assistant whenever business info is updated
+    assistant, created = Assistant.objects.get_or_create(business=business)
+    assistant.knowledge_base = kb
+    # Also update slug if name was just fulfilled
+    if business.name and not assistant.slug:
+        assistant.slug = slugify(business.name)
+    assistant.save()
 
     # Automatically check if setup is complete
     required_fields = [
-        instance.name, instance.website_url, instance.contact_number,
-        instance.email, instance.address, instance.service_areas,
-        instance.services_offered, instance.business_hours,
-        instance.pricing_info, instance.appointment_rules,
-        instance.lead_qualification_questions, instance.special_instructions
+        business.name, business.website_url, business.contact_number,
+        business.email, business.address, business.service_areas,
+        business.services_offered, business.business_hours,
+        business.pricing_info, business.appointment_rules,
+        business.lead_qualification_questions, business.special_instructions
     ]
     
     # Check if all fields have values and there is at least one FAQ
     all_fields_filled = all(required_fields)
-    has_faqs = instance.faqs.exists()
+    has_faqs = business.faqs.exists()
     
     is_complete = all_fields_filled and has_faqs
     
-    if instance.is_setup_complete != is_complete:
+    if business.is_setup_complete != is_complete:
         # Use update to avoid re-triggering the signal recursively
-        Business.objects.filter(pk=instance.pk).update(is_setup_complete=is_complete)
+        Business.objects.filter(pk=business.pk).update(is_setup_complete=is_complete)
+
+@receiver(post_save, sender=Business)
+def manage_assistant(sender, instance, created, **kwargs):
+    if created:
+        Assistant.objects.create(
+            business=instance,
+            slug=slugify(instance.name) if instance.name else slugify(instance.owner.username),
+            knowledge_base=f"Welcome to {instance.name or instance.owner.username}"
+        )
+    
+    update_business_assistant_and_status(instance)
+
+@receiver([post_save, post_delete], sender=FAQ)
+def handle_faq_change(sender, instance, **kwargs):
+    """Update business status when FAQs are changed."""
+    if instance.business:
+        update_business_assistant_and_status(instance.business)
