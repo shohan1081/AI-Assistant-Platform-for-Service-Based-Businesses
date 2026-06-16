@@ -3,6 +3,8 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from .models import Business, OnboardingLink, RegistrationRequest
 from .serializers import BusinessSerializer, OnboardingLinkSerializer, BusinessRegistrationSerializer, RegistrationRequestSerializer
+from apps.accounts.models import User
+
 
 class RegistrationRequestViewSet(viewsets.ModelViewSet):
     queryset = RegistrationRequest.objects.all()
