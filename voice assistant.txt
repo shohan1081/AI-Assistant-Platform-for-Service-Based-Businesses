@@ -1,0 +1,104 @@
+# api.py
+import enum
+from typing import Annotated
+from livekit.agents import llm
+import logging
+
+logger = logging.getLogger("temperature-control")
+logger.setLevel(logging.INFO)
+
+
+class Zone(enum.Enum):
+    LIVING_ROOM = "living_room"
+    BEDROOM = "bedroom"
+    KITCHEN = "kitchen"
+    BATHROOM = "bathroom"
+    OFFICE = "office"
+
+
+class AssistantFnc(llm.FunctionContext):
+    def __init__(self) -> None:
+        super().__init__()
+
+        self._temperature = {
+            Zone.LIVING_ROOM: 22,
+            Zone.BEDROOM: 20,
+            Zone.KITCHEN: 24,
+            Zone.BATHROOM: 23,
+            Zone.OFFICE: 21,
+        }
+
+    @llm.ai_callable(description="get the temperature in a specific room")
+    def get_temperature(
+        self, zone: Annotated[Zone, llm.TypeInfo(description="The specific zone")]
+    ):
+        logger.info("get temp - zone %s", zone)
+        temp = self._temperature[Zone(zone)]
+        return f"The temperature in the {zone} is {temp}C"
+
+    @llm.ai_callable(description="set the temperature in a specific room")
+    def set_temperature(
+        self,
+        zone: Annotated[Zone, llm.TypeInfo(description="The specific zone")],
+        temp: Annotated[int, llm.TypeInfo(description="The temperature to set")],
+    ):
+        logger.info("set temo - zone %s, temp: %s", zone, temp)
+        self._temperature[Zone(zone)] = temp
+        return f"The temperature in the {zone} is now {temp}C"
+
+
+# main.py
+
+import asyncio
+
+from dotenv import load_dotenv
+from livekit.agents import AutoSubscribe, JobContext, WorkerOptions, cli, llm
+from livekit.agents.voice_assistant import VoiceAssistant
+from livekit.plugins import openai, silero
+from api import AssistantFnc
+
+load_dotenv()
+
+
+async def entrypoint(ctx: JobContext):
+    initial_ctx = llm.ChatContext().append(
+        role="system",
+        text=(
+            "You are a voice assistant created by LiveKit. Your interface with users will be voice. "
+            "You should use short and concise responses, and avoiding usage of unpronouncable punctuation."
+        ),
+    )
+    await ctx.connect(auto_subscribe=AutoSubscribe.AUDIO_ONLY)
+    fnc_ctx = AssistantFnc()
+
+    assitant = VoiceAssistant(
+        vad=silero.VAD.load(),
+        stt=openai.STT(),
+        llm=openai.LLM(),
+        tts=openai.TTS(),
+        chat_ctx=initial_ctx,
+        fnc_ctx=fnc_ctx,
+    )
+    assitant.start(ctx.room)
+
+    await asyncio.sleep(1)
+    await assitant.say("Hey, how can I help you today!", allow_interruptions=True)
+
+
+if __name__ == "__main__":
+    cli.run_app(WorkerOptions(entrypoint_fnc=entrypoint))
+
+# requirements.text
+livekit-agents>=0.8.7
+livekit-plugins-openai>=0.8.1
+livekit-plugins-silero>=0.6.4
+python-dotenv~=1.0
+
+# sample .env file 
+
+LIVEKIT_URL=""
+LIVEKIT_API_SECRET=""
+LIVEKIT_API_KEY=""
+OPENAI_API_KEY=""
+
+# now this is a idea how the assistant agent work . but we need a assistant same as the chatbot so every business will have there own assistant and it will assiste the user as a reciptionist. also how the call will work continuesly so like a user talk then ai will give response continusly so it feels like user are talking in a live call not sending message then wait for reply like that. and every assistant will get knowledge same as the chatbot
