@@ -136,6 +136,13 @@ class BusinessAdmin(ModelAdmin):
         return "Not generated yet"
     public_assistant_link.short_description = "Public AI Assistant Link"
 
+    def embed_code(self, obj):
+        if hasattr(obj, 'assistant') and obj.assistant.slug:
+            code = f'<!-- Paste this in your website body -->\n<script src="https://nexflow.com/widget.js" data-slug="{obj.assistant.slug}"></script>'
+            return format_html('<pre style="background: #f8f9fa; padding: 15px; border-radius: 8px; font-family: monospace; border: 1px solid #e5e7eb;">{}</pre>', code)
+        return "Complete setup to generate your embed code."
+    embed_code.short_description = "Website Embed Code"
+
     def setup_progress(self, obj):
         if not obj.pk:
             return "Save the business first to see progress."
@@ -176,7 +183,10 @@ class BusinessAdmin(ModelAdmin):
             'fields': ('setup_progress',),
         }),
         ('Basic Information', {
-            'fields': ('owner', 'name', 'public_assistant_link', 'website_url', 'email', 'contact_number', 'address', 'is_setup_complete', 'business_hours')
+            'fields': ('owner', 'name', 'public_assistant_link', 'embed_code', 'website_url', 'email', 'contact_number', 'address', 'is_setup_complete', 'business_hours')
+        }),
+        ('UI Customization', {
+            'fields': ('ui_theme_color', 'ui_border_radius')
         }),
         ('Business Hours', {
             'fields': [
@@ -192,7 +202,7 @@ class BusinessAdmin(ModelAdmin):
     )
 
     def get_readonly_fields(self, request, obj=None):
-        base_readonly = ['public_assistant_link', 'setup_progress']
+        base_readonly = ['public_assistant_link', 'embed_code', 'setup_progress']
         if request.user.is_superuser or request.user.role == User.Role.ADMIN:
             return base_readonly
         return ['owner', 'is_setup_complete'] + base_readonly
