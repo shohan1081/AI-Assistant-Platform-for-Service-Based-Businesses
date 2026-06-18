@@ -50,8 +50,8 @@ class AssistantViewSet(viewsets.ModelViewSet):
             if not session_id:
                 return Response({'error': 'session_id is required'}, status=status.HTTP_400_BAD_REQUEST)
 
-            # TESTING ONLY: 1 minute threshold (Change to 16 hours for production)
-            time_threshold = timezone.now() - timezone.timedelta(minutes=1)
+            # Time threshold for session retention (10 hours)
+            time_threshold = timezone.now() - timezone.timedelta(hours=10)
 
             # Retrieve all messages for this session within the time threshold
             messages = ChatMessage.objects.filter(
