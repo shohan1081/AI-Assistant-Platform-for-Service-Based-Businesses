@@ -126,8 +126,8 @@ class AssistantViewSet(viewsets.ModelViewSet):
                [LEAD_DATA: Name: User Name, Phone: User Phone, Service: Service Interest]
             """
 
-            # Retrieve conversation history (last 15 messages from last 24 hours)
-            time_threshold = timezone.now() - timezone.timedelta(hours=24)
+            # Retrieve conversation history (last 15 messages from last 16 hours)
+            time_threshold = timezone.now() - timezone.timedelta(hours=16)
             history = ChatMessage.objects.filter(
                 assistant=assistant,
                 session_id=session_id,

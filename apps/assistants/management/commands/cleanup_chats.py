@@ -4,11 +4,11 @@ from apps.assistants.models import ChatMessage
 import datetime
 
 class Command(BaseCommand):
-    help = 'Deletes chat messages older than 24 hours to save storage.'
+    help = 'Deletes chat messages older than 16 hours to save storage.'
 
     def handle(self, *args, **options):
-        # Calculate the cutoff time (24 hours ago)
-        cutoff = timezone.now() - datetime.timedelta(hours=24)
+        # Calculate the cutoff time (16 hours ago)
+        cutoff = timezone.now() - datetime.timedelta(hours=16)
         
         # Count messages to be deleted
         count = ChatMessage.objects.filter(created_at__lt=cutoff).count()
