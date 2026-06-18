@@ -189,7 +189,7 @@ class BusinessAdmin(ModelAdmin):
             'fields': ('owner', 'name', 'public_assistant_link', 'embed_code', 'website_url', 'email', 'contact_number', 'address', 'is_setup_complete', 'business_hours')
         }),
         ('UI Customization', {
-            'fields': ('ui_theme_color', 'ui_border_radius')
+            'fields': ('ui_theme_color', 'ui_text_color', 'ui_border_radius')
         }),
         ('Business Hours', {
             'fields': [

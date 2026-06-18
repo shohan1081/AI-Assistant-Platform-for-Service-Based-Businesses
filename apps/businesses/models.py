@@ -64,6 +64,11 @@ class Business(models.Model):
         default='#4f46e5', 
         help_text='Hex color code for the chat header and buttons.'
     )
+    ui_text_color = models.CharField(
+        max_length=10, 
+        default='#ffffff', 
+        help_text='Hex color code for the text inside header and buttons.'
+    )
     ui_border_radius = models.CharField(
         max_length=10, 
         default='12px', 
