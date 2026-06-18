@@ -5,6 +5,7 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags, format_html
 from django.utils.safestring import mark_safe
 from django.contrib import messages
+from django.db import transaction
 import logging
 
 logger = logging.getLogger(__name__)
@@ -31,35 +32,37 @@ class RegistrationRequestAdmin(ModelAdmin):
             return False, "Username already exists."
         
         try:
-            user = User.objects.create_user(
-                username=reg_request.username,
-                password=reg_request.password,
-                email=reg_request.email,
-                role=User.Role.BUSINESS_OWNER,
-                phone_number=reg_request.phone_number,
-                is_staff=True
-            )
+            with transaction.atomic():
+                user = User.objects.create_user(
+                    username=reg_request.username,
+                    password=reg_request.password,
+                    email=reg_request.email,
+                    role=User.Role.BUSINESS_OWNER,
+                    phone_number=reg_request.phone_number,
+                    is_staff=True
+                )
 
-            Business.objects.create(
-                owner=user,
-                name=reg_request.business_name,
-                email=reg_request.email,
-                contact_number=reg_request.phone_number,
-                website_url=reg_request.website_url,
-                is_setup_complete=False
-            )
+                Business.objects.create(
+                    owner=user,
+                    name=reg_request.business_name,
+                    email=reg_request.email,
+                    contact_number=reg_request.phone_number,
+                    website_url=reg_request.website_url,
+                    is_setup_complete=False
+                )
 
-            from django.contrib.contenttypes.models import ContentType
-            from django.contrib.auth.models import Permission
-            models_to_grant = [
-                ('businesses', 'business'), ('businesses', 'faq'),
-                ('assistants', 'assistant'), ('assistants', 'lead'), ('assistants', 'booking'),
-            ]
-            for app, model in models_to_grant:
-                ct = ContentType.objects.get(app_label=app, model=model)
-                perms = Permission.objects.filter(content_type=ct, codename__in=[f'view_{model}', f'change_{model}', f'add_{model}'])
-                user.user_permissions.add(*perms)
+                from django.contrib.contenttypes.models import ContentType
+                from django.contrib.auth.models import Permission
+                models_to_grant = [
+                    ('businesses', 'business'), ('businesses', 'faq'),
+                    ('assistants', 'assistant'), ('assistants', 'lead'), ('assistants', 'booking'),
+                ]
+                for app, model in models_to_grant:
+                    ct = ContentType.objects.get(app_label=app, model=model)
+                    perms = Permission.objects.filter(content_type=ct, codename__in=[f'view_{model}', f'change_{model}', f'add_{model}'])
+                    user.user_permissions.add(*perms)
 
+            # Email sending happens outside the atomic block so it doesn't rollback on network failure
             subject = f"Welcome to NexFlow AI - {reg_request.business_name}"
             login_url = request.build_absolute_uri('/admin/')
             
