@@ -59,6 +59,16 @@ class Business(models.Model):
         null=True,
         help_text='Directives for the AI: e.g., "Always be cheerful", "Never give exact dates"'
     )
+    ui_theme_color = models.CharField(
+        max_length=10, 
+        default='#4f46e5', 
+        help_text='Hex color code for the chat header and buttons.'
+    )
+    ui_border_radius = models.CharField(
+        max_length=10, 
+        default='12px', 
+        help_text='e.g., 12px, 0px, 1rem'
+    )
     is_setup_complete = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
