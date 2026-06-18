@@ -50,10 +50,14 @@ class AssistantViewSet(viewsets.ModelViewSet):
             if not session_id:
                 return Response({'error': 'session_id is required'}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Retrieve all messages for this session, ordered by time
+            # TESTING ONLY: 1 minute threshold (Change to 16 hours for production)
+            time_threshold = timezone.now() - timezone.timedelta(minutes=1)
+
+            # Retrieve all messages for this session within the time threshold
             messages = ChatMessage.objects.filter(
                 assistant=assistant,
-                session_id=session_id
+                session_id=session_id,
+                created_at__gte=time_threshold
             ).order_by('created_at')
 
             serializer = ChatMessageSerializer(messages, many=True)
@@ -126,8 +130,8 @@ class AssistantViewSet(viewsets.ModelViewSet):
                [LEAD_DATA: Name: User Name, Phone: User Phone, Service: Service Interest]
             """
 
-            # Retrieve conversation history (last 15 messages from last 16 hours)
-            time_threshold = timezone.now() - timezone.timedelta(hours=16)
+            # Retrieve conversation history (last 15 messages from last 1 minute - TESTING)
+            time_threshold = timezone.now() - timezone.timedelta(minutes=1)
             history = ChatMessage.objects.filter(
                 assistant=assistant,
                 session_id=session_id,
