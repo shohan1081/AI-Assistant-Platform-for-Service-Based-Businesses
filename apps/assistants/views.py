@@ -110,6 +110,10 @@ class AssistantViewSet(viewsets.ModelViewSet):
             2. If a user asks about general knowledge, politics, weather, other companies, coding, or anything unrelated to the services offered, you must politely decline to answer.
             3. Use a polite deflection that brings the conversation back to the business. 
                Example of how to handle off-topic questions: "I'm here to help you with anything related to the services offered by {assistant.business.name}! If you have questions about our services, pricing, or want to book an appointment, just let me know. How can I assist you today?"
+            4. SERVICE AREA VALIDATION:
+               - The business ONLY serves locations listed in "Service Areas" in the KNOWLEDGE BASE.
+               - Before booking an appointment or scheduling a visit, you MUST verify the customer's location/address.
+               - If the address or location provided by the customer is NOT inside the business's Service Areas (for example, if they specify an address in a different country/state/city, or if it is not in the list of served locations), you MUST politely inform them that their address is outside our service area, list the valid service areas from the KNOWLEDGE BASE, and refuse to proceed with the booking or capture their booking data.
             
             GUIDELINES:
             1. Be very polite. Do NOT be pushy.
@@ -130,14 +134,14 @@ class AssistantViewSet(viewsets.ModelViewSet):
                [LEAD_DATA: Name: User Name, Phone: User Phone, Service: Service Interest]
             """
 
-            # Retrieve conversation history (last 15 messages from last 1 minute - TESTING)
-            time_threshold = timezone.now() - timezone.timedelta(minutes=1)
+            # Retrieve conversation history (last 15 messages from last 10 hours)
+            time_threshold = timezone.now() - timezone.timedelta(hours=10)
             history = ChatMessage.objects.filter(
                 assistant=assistant,
                 session_id=session_id,
                 created_at__gte=time_threshold
             ).order_by('created_at')[:15]
-
+ 
             messages = [{"role": "system", "content": system_prompt}]
             for msg in history:
                 messages.append({"role": msg.role, "content": msg.content})
