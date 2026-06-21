@@ -8,7 +8,7 @@ class RegistrationRequest(models.Model):
         APPROVED = 'APPROVED', 'Approved'
         REJECTED = 'REJECTED', 'Rejected'
 
-    username = models.CharField(max_length=150, unique=True)
+    username = models.CharField(max_length=150)
     email = models.EmailField()
     phone_number = models.CharField(max_length=20)
     password = models.CharField(max_length=128) # Store temporarily or ask them to set it? Let's capture it as requested.
@@ -30,7 +30,7 @@ class Business(models.Model):
         on_delete=models.CASCADE,
         related_name='business'
     )
-    name = models.CharField(max_length=255, blank=True)
+    name = models.CharField(max_length=255, unique=True)
     website_url = models.URLField(blank=True, null=True)
     contact_number = models.CharField(max_length=20, blank=True)
     email = models.EmailField(blank=True)
