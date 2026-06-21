@@ -88,3 +88,13 @@ class RegistrationRequestSerializer(serializers.ModelSerializer):
         model = RegistrationRequest
         fields = ('username', 'password', 'email', 'phone_number', 'business_name', 'business_description', 'website_url')
         extra_kwargs = {'password': {'write_only': True}}
+
+    def validate_password(self, value):
+        if not any(char.isupper() for char in value):
+            raise serializers.ValidationError("Password must contain at least one uppercase letter.")
+        if not any(char.isdigit() for char in value):
+            raise serializers.ValidationError("Password must contain at least one number.")
+        if not any(not char.isalnum() and not char.isspace() for char in value):
+            raise serializers.ValidationError("Password must contain at least one special character.")
+        return value
+
