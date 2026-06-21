@@ -98,3 +98,12 @@ class RegistrationRequestSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Password must contain at least one special character.")
         return value
 
+    def validate_business_name(self, value):
+        from .models import Business
+        if Business.objects.filter(name__iexact=value).exists():
+            raise serializers.ValidationError("A business with this name already exists.")
+        if RegistrationRequest.objects.filter(business_name__iexact=value, status=RegistrationRequest.Status.PENDING).exists():
+            raise serializers.ValidationError("A registration request for this business name is already pending.")
+        return value
+
+
