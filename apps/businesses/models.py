@@ -69,6 +69,11 @@ class Business(models.Model):
         default='#ffffff', 
         help_text='Hex color code for the text inside header and buttons.'
     )
+    ui_banner_color = models.CharField(
+        max_length=10,
+        default='#f3f4f6',
+        help_text='Hex color code for the banner/header section of the assistant page.'
+    )
     ui_border_radius = models.CharField(
         max_length=10, 
         default='12px', 
