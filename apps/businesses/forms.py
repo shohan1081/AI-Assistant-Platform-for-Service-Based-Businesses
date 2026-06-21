@@ -43,6 +43,7 @@ class BusinessAdminForm(forms.ModelForm):
             'business_hours': forms.HiddenInput(),
             'ui_theme_color': forms.TextInput(attrs={'type': 'color', 'style': 'height: 40px; width: 60px; padding: 0; cursor: pointer; border: none;'}),
             'ui_text_color': forms.TextInput(attrs={'type': 'color', 'style': 'height: 40px; width: 60px; padding: 0; cursor: pointer; border: none;'}),
+            'ui_banner_color': forms.TextInput(attrs={'type': 'color', 'style': 'height: 40px; width: 60px; padding: 0; cursor: pointer; border: none;'}),
         }
 
     def __init__(self, *args, **kwargs):
