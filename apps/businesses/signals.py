@@ -4,6 +4,27 @@ from django.utils.text import slugify
 from .models import Business, FAQ
 from apps.assistants.models import Assistant
 
+def generate_unique_slug(base_name, exclude_assistant_id=None):
+    base_slug = slugify(base_name)
+    if not base_slug:
+        base_slug = "assistant"
+        
+    slug = base_slug
+    counter = 1
+    
+    query = Assistant.objects.filter(slug=slug)
+    if exclude_assistant_id:
+        query = query.exclude(pk=exclude_assistant_id)
+        
+    while query.exists():
+        slug = f"{base_slug}-{counter}"
+        query = Assistant.objects.filter(slug=slug)
+        if exclude_assistant_id:
+            query = query.exclude(pk=exclude_assistant_id)
+        counter += 1
+        
+    return slug
+
 def update_business_assistant_and_status(business):
     """Helper function to update assistant KB and business setup status."""
     # Compile knowledge for the AI
@@ -30,7 +51,7 @@ def update_business_assistant_and_status(business):
     assistant.knowledge_base = kb
     # Also update slug if name was just fulfilled
     if business.name and not assistant.slug:
-        assistant.slug = slugify(business.name)
+        assistant.slug = generate_unique_slug(business.name, exclude_assistant_id=assistant.pk)
     assistant.save()
 
     # Automatically check if setup is complete
@@ -55,9 +76,11 @@ def update_business_assistant_and_status(business):
 @receiver(post_save, sender=Business)
 def manage_assistant(sender, instance, created, **kwargs):
     if created:
+        base_name = instance.name if instance.name else instance.owner.username
+        slug = generate_unique_slug(base_name)
         Assistant.objects.create(
             business=instance,
-            slug=slugify(instance.name) if instance.name else slugify(instance.owner.username),
+            slug=slug,
             knowledge_base=f"Welcome to {instance.name or instance.owner.username}"
         )
     
