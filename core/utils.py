@@ -7,7 +7,7 @@ def get_site_header(request):
         if getattr(request.user, 'role', None) == 'BUSINESS_OWNER':
             if hasattr(request.user, 'business') and request.user.business.name:
                 return request.user.business.name
-    return "NexFlow AI Admin"
+    return "NexSell Connect Admin"
 
 def get_site_title(request):
     return get_site_header(request)
