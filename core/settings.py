@@ -192,7 +192,7 @@ SIMPLE_JWT = {
 
 # Spectacular Settings
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'NexFlow AI API',
+    'TITLE': 'NexSell Connect API',
     'DESCRIPTION': 'AI Assistant Platform for Service-Based Businesses',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
