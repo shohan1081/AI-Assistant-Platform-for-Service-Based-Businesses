@@ -11,6 +11,7 @@ env = environ.Env(
     DEBUG=(bool, False),
     ALLOWED_HOSTS=(list, []),
     CORS_ALLOWED_ORIGINS=(list, []),
+    CSRF_TRUSTED_ORIGINS=(list, []),
 )
 
 # Reading .env file
@@ -200,6 +201,11 @@ SPECTACULAR_SETTINGS = {
 
 # CORS Settings
 CORS_ALLOWED_ORIGINS = env('CORS_ALLOWED_ORIGINS')
+
+# CSRF Settings
+CSRF_TRUSTED_ORIGINS = env('CSRF_TRUSTED_ORIGINS')
+if not CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
 
 # Unfold Admin Settings
 import core.utils
