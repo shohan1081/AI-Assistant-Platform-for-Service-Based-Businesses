@@ -134,14 +134,14 @@ class BusinessAdmin(ModelAdmin):
 
     def public_assistant_link(self, obj):
         if hasattr(obj, 'assistant') and obj.assistant.slug:
-            url = f"http://127.0.0.1:8000/assistant/{obj.assistant.slug}/"
+            url = f"https://nexsellconnect.com/assistant/{obj.assistant.slug}/"
             return format_html('<a href="{0}" target="_blank">{0}</a>', url)
         return "Not generated yet"
     public_assistant_link.short_description = "Public AI Assistant Link"
 
     def embed_code(self, obj):
         if hasattr(obj, 'assistant') and obj.assistant.slug:
-            code = f'<!-- Paste this in your website body -->\n<script src="https://nexflow.com/widget.js" data-slug="{obj.assistant.slug}"></script>'
+            code = f'<!-- Paste this in your website body -->\n<script src="https://nexsellconnect.com/widget.js" data-slug="{obj.assistant.slug}"></script>'
             return format_html('<pre style="background: #f8f9fa; padding: 15px; border-radius: 8px; font-family: monospace; border: 1px solid #e5e7eb;">{}</pre>', code)
         return "Complete setup to generate your embed code."
     embed_code.short_description = "Website Embed Code"
@@ -225,7 +225,7 @@ class OnboardingLinkAdmin(ModelAdmin):
     readonly_fields = ('token', 'setup_url', 'created_by', 'is_used')
     
     def setup_url(self, obj):
-        return f"http://127.0.0.1:8000/api/v1/businesses/links/register_business/?token={obj.token}"
+        return f"https://nexsellconnect.com/api/v1/businesses/links/register_business/?token={obj.token}"
     setup_url.short_description = "Onboarding Link URL"
 
     def save_model(self, request, obj, form, change):
