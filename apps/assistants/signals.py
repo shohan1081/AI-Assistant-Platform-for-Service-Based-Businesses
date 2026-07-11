@@ -33,7 +33,7 @@ def send_booking_notification(sender, instance, created, **kwargs):
         # Build the admin URL to review the booking
         # Since we might not know the exact domain dynamically, we construct a standard dev link.
         # Production setups would configure hostnames accordingly.
-        admin_url = f"http://127.0.0.1:8000/admin/assistants/booking/{instance.pk}/change/"
+        admin_url = f"https://nexsellconnect.com/admin/assistants/booking/{instance.pk}/change/"
         
         subject = f"New Booking Request - {business.name or 'Your Business'}"
         
@@ -57,13 +57,13 @@ You can review, confirm, or cancel this booking directly from your admin dashboa
 {admin_url}
 
 Best regards,
-The NexFlow AI Team
+The NexSell Connect Team
 """
 
         send_mail(
             subject=subject,
             message=email_body,
-            from_email=settings.DEFAULT_FROM_EMAIL or 'noreply@nexflow.ai',
+            from_email=settings.DEFAULT_FROM_EMAIL or 'noreply@nexsellconnect.com',
             recipient_list=recipients,
             fail_silently=False
         )
