@@ -111,8 +111,8 @@ You need to securely pull your code from GitLab to your server. We will use an S
    ```env
    DEBUG=False
    SECRET_KEY=your-super-secret-key-change-this
-   ALLOWED_HOSTS=<YOUR_ELASTIC_IP>,yourdomain.com
-   CORS_ALLOWED_ORIGINS=http://<YOUR_ELASTIC_IP>,https://yourdomain.com
+   ALLOWED_HOSTS=<YOUR_ELASTIC_IP>,nexsellconnect.com
+   CORS_ALLOWED_ORIGINS=http://<YOUR_ELASTIC_IP>,https://nexsellconnect.com
 
    DATABASE_URL=postgres://postgres:postgres_secure_password@db:5432/nexflow_db
    POSTGRES_DB=nexflow_db
