@@ -19,6 +19,24 @@ urlpatterns = [
     path('api/v1/assistants/', include('apps.assistants.urls')),
 ]
 
+from apps.assistants.views import AssistantViewSet
+from apps.businesses.views import RegistrationRequestViewSet
+
+# Proxy Compatibility URLs (for frontend client support)
+urlpatterns += [
+    path('api/proxy/chatbot/<str:slug>/', AssistantViewSet.as_view({'get': 'retrieve_public'}), name='proxy-assistant-public-slash'),
+    path('api/proxy/chatbot/<str:slug>', AssistantViewSet.as_view({'get': 'retrieve_public'}), name='proxy-assistant-public'),
+    
+    path('api/proxy/chatbot/<str:slug>/chat/', AssistantViewSet.as_view({'post': 'chat'}), name='proxy-assistant-chat-slash'),
+    path('api/proxy/chatbot/<str:slug>/chat', AssistantViewSet.as_view({'post': 'chat'}), name='proxy-assistant-chat'),
+    
+    path('api/proxy/chatbot/<str:slug>/history/', AssistantViewSet.as_view({'get': 'history'}), name='proxy-assistant-history-slash'),
+    path('api/proxy/chatbot/<str:slug>/history', AssistantViewSet.as_view({'get': 'history'}), name='proxy-assistant-history'),
+    
+    path('api/proxy/businesses/requests/', RegistrationRequestViewSet.as_view({'post': 'create', 'get': 'list'}), name='proxy-business-requests-slash'),
+    path('api/proxy/businesses/requests', RegistrationRequestViewSet.as_view({'post': 'create', 'get': 'list'}), name='proxy-business-requests'),
+]
+
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
